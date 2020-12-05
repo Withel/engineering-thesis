@@ -1,0 +1,6 @@
+CPU-LOAD:
+
+
+DB-SERVICE:
+    -endpoints for GET /books, /publishers, /authors
+    -endpoints for adding with to database with post and via url

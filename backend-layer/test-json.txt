@@ -1,0 +1,18 @@
+http://localhost:8080/authors/add/json
+{
+    "name": "testname",
+    "lastName": "testLastName"
+}
+
+http://localhost:8080/authors/add/json
+{
+    "name": "testpublisherjson",
+    "address": "testpublisheradres_long_json"
+}
+
+http://localhost:8080/books/add/json
+{
+    "title": "new book book",
+    "authorLastName": "tolkien",
+    "publisherName": "microsoft"
+}

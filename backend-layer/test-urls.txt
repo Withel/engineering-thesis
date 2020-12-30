@@ -1,0 +1,10 @@
+http://localhost:8080/books/add/url?title=sometitle&authorLastName=Tolkien&publisherName=Google
+http://localhost:8080/books/add/url?title=title_with_many_words_title&authorLastName=Tolkien&publisherName=microsoft
+
+http://localhost:8080/authors/add/url?name=authorname&lastName=secondname
+http://localhost:8080/authors/add/url?name=authorname1_authorname2&lastName=secondname2
+
+http://localhost:8080/publishers/add/url?name=publishername&address=wallstreet_420
+http://localhost:8080/publishers/add/url?name=publishername_with_longer_name&address=wallstreet_420_and_some_words
+
+http://localhost:8080/books/add/url?title=sometitle222&authorLastName=secondname&publisherName=publishername

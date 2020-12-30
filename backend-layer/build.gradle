@@ -1,0 +1,7 @@
+//plugins {
+//    id 'org.springframework.boot' version '2.3.5.RELEASE'
+//}
+//
+//task runAll(){
+//    bootRun(eureka-server)
+//}

@@ -26,4 +26,34 @@ public class HashServiceImpl implements HashService {
         return Hashing.sha512()
                 .hashString(word).toString();
     }
+
+    @Override
+    public String hashMd5(String word, Long n) {
+        for(int i=0; i<n; i++){
+            Hashing.md5()
+                    .hashString(word);
+        }
+        return Hashing.md5()
+                .hashString(word).toString();
+    }
+
+    @Override
+    public String hashSha256(String word, Long n) {
+        for(int i=0; i<n; i++){
+            Hashing.sha256()
+                    .hashString(word);
+        }
+        return Hashing.sha256()
+                .hashString(word).toString();
+    }
+
+    @Override
+    public String hashSha512(String word, Long n) {
+        for(int i=0; i<n; i++){
+            Hashing.sha512()
+                    .hashString(word);
+        }
+        return Hashing.sha512()
+                .hashString(word).toString();
+    }
 }

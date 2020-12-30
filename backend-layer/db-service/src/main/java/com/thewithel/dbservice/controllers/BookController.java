@@ -1,16 +1,18 @@
 package com.thewithel.dbservice.controllers;
 
+import com.thewithel.dbservice.DTO.AddBookDTO;
 import com.thewithel.dbservice.DTO.BookDTO;
 import com.thewithel.dbservice.services.BookService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
-@RestController
+@Controller
+@RequestMapping(value = "/api", produces = "application/json;charset=UTF-8")
+@Slf4j
 public class BookController {
 
     BookService bookService;
@@ -19,41 +21,26 @@ public class BookController {
         this.bookService = bookService;
     }
 
-    @PostMapping("/books/add")
-    public String addBook(@RequestBody BookDTO bookDTO){
-        return "sasd";
+    @GetMapping("/books")
+    public ResponseEntity<List<BookDTO>> getBooks() {
+        log.info("ENDPOINT: /getBooks() in function getBooks().");
+        return ResponseEntity.ok().body(bookService.getBooks());
+//        return ResponseEntity.of(bookService.getBooks());
     }
 
-    @PostMapping("/books/add/")
-    public String addBook
-
-    @GetMapping("/books/add")
-    public List<String> addBookGet(){
-        List<String> info = new ArrayList<>();
-        info.add("To get adresses do this:");
-        info.add("This 1");
-        info.add("This 2");
-        return info;
+    @GetMapping("/books/add/url")
+    public String addBookUrl(@RequestParam String title, @RequestParam String authorLastName,
+                             @RequestParam String publisherName) {
+        log.info("ENDPOINT: /books/add/url in function addBooksUrl(). With params: {}, {}, {}",
+                title, authorLastName, publisherName);
+        String message = bookService.addBookUrl(title, authorLastName, publisherName);
+        return message;
     }
 
-
-
-//    @GetMapping("/test")
-//    public InfoDTO returnTest(){
-//        InfoDTO infoDTO = new InfoDTO();
-//        infoDTO.setOne("Info one");
-//        infoDTO.setTwo("Infor Two");
-//        return  infoDTO;
-//    }
-//
-//    @GetMapping("/test2")
-//    public List<InfoDTO> returnTest2(){
-//        InfoDTO infoDTO = new InfoDTO();
-//        infoDTO.setOne("Info one");
-//        infoDTO.setTwo("Infor Two");
-//        List<InfoDTO> info = new ArrayList<>();
-//        info.add(infoDTO);
-//        info.add(infoDTO);
-//        return info;
-//    }
+    @PostMapping("/books/add/json")
+    public String addBookJson(@RequestBody AddBookDTO addBookDTO) {
+        log.info("ENDPOINT: /authors/add/json in function addAuthorsJson(). With params: {}", addBookDTO.toString());
+        String message = bookService.addBookJson(addBookDTO);
+        return message;
+    }
 }

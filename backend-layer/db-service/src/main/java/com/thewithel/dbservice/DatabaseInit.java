@@ -12,9 +12,6 @@ import com.thewithel.dbservice.services.PublisherService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
 public class DatabaseInit implements CommandLineRunner {
 
@@ -43,64 +40,61 @@ public class DatabaseInit implements CommandLineRunner {
         // Publishers
         Publisher publisher = new Publisher();
         publisher.setAdres("1600 Amphitheatre Parkway, Mountain View, CA, 94043");
-        publisher.setName("Google");
+        publisher.setName("Google".toLowerCase());
         publisherRepository.save(publisher);
 
         publisher = new Publisher();
-        publisher.setName("Microsoft");
+        publisher.setName("Microsoft".toLowerCase());
         publisher.setAdres("Redmond, Washington, United States");
         publisherRepository.save(publisher);
 
         // Authors
         Author author = new Author();
-        author.setName("John Ronald Reuel");
-        author.setLastName("Tolkien");
+        author.setName("John Ronald Reuel".toLowerCase());
+        author.setLastName("Tolkien".toLowerCase());
         authorRepository.save(author);
 
         author = new Author();
-        author.setName("Terence David John");
-        author.setLastName("Pratchett");
+        author.setName("Terence David John".toLowerCase());
+        author.setLastName("Pratchett".toLowerCase());
         authorRepository.save(author);
 
         // Books
         Book book = new Book();
-        book.setName("Lord of the Rings - Return of the King");
-        book.setPublisher(publisherService.findPublisherByName("Google"));
-        List<Author> tempList = new ArrayList<>();
-        tempList.add(authorService.findAuthorByLastName("Tolkien"));
-        book.setAuthors(tempList);
+        book.setTitle("Lord of the Rings - Return of the King".toLowerCase());
+        book.setPublisher(publisherService.findPublisherByName("Google".toLowerCase()));
+        book.setAuthor(authorService.findAuthorByLastName("Tolkien".toLowerCase()));
         bookRepository.save(book);
 
         book = new Book();
-        book.setName("Lord of the Rings - The Fellowship of the Rings");
-        book.setPublisher(publisherService.findPublisherByName("Google"));
-        book.setAuthors(tempList);
+        book.setTitle("Lord of the Rings - The Fellowship of the Rings".toLowerCase());
+        book.setPublisher(publisherService.findPublisherByName("Google".toLowerCase()));
+        book.setAuthor(authorService.findAuthorByLastName("Tolkien".toLowerCase()));
         bookRepository.save(book);
 
         book = new Book();
-        book.setName("Lord of the Rings - The Two Towers");
-        book.setPublisher(publisherService.findPublisherByName("Google"));
-        book.setAuthors(tempList);
+        book.setTitle("Lord of the Rings - The Two Towers".toLowerCase());
+        book.setPublisher(publisherService.findPublisherByName("Google".toLowerCase()));
+        book.setAuthor(authorService.findAuthorByLastName("Tolkien".toLowerCase()));
         bookRepository.save(book);
 
-        tempList.clear();
-        tempList.add(authorService.findAuthorByLastName("Pratchett"));
-        book = new Book();
-        book.setName("The Colour of Magic");
-        book.setAuthors(tempList);
-        book.setPublisher(publisherService.findPublisherByName("Microsoft"));
-        bookRepository.save(book);
 
         book = new Book();
-        book.setName("The Light Fantastic");
-        book.setAuthors(tempList);
-        book.setPublisher(publisherService.findPublisherByName("Microsoft"));
+        book.setTitle("The Colour of Magic".toLowerCase());
+        book.setAuthor(authorService.findAuthorByLastName("Pratchett".toLowerCase()));
+        book.setPublisher(publisherService.findPublisherByName("Microsoft".toLowerCase()));
         bookRepository.save(book);
 
         book = new Book();
-        book.setName("Equal Rites");
-        book.setAuthors(tempList);
-        book.setPublisher(publisherService.findPublisherByName("Microsoft"));
+        book.setTitle("The Light Fantastic".toLowerCase());
+        book.setAuthor(authorService.findAuthorByLastName("Pratchett".toLowerCase()));
+        book.setPublisher(publisherService.findPublisherByName("Microsoft".toLowerCase()));
+        bookRepository.save(book);
+
+        book = new Book();
+        book.setTitle("Equal Rites".toLowerCase());
+        book.setAuthor(authorService.findAuthorByLastName("Pratchett".toLowerCase()));
+        book.setPublisher(publisherService.findPublisherByName("Microsoft".toLowerCase()));
         bookRepository.save(book);
     }
 }

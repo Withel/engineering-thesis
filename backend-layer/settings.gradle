@@ -8,4 +8,4 @@
  */
 
 rootProject.name = 'backend-layer'
-include('cpu-load', 'db-service', 'call-service')
+include('cpu-load', 'db-service', 'call-service', 'eureka-server', 'api-gateway')

@@ -1,0 +1,131 @@
+version: "3.9"
+services:
+
+#=======================================================
+#SERVICES
+#=======================================================
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    ports:
+      - "8661:8661"
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    ports:
+      - "8662:8662"
+    depends_on:
+      - "eureka-server"
+
+  call-service:
+    build: ./call-service
+    container_name: call-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    ports:
+      - "8010:8010"
+    depends_on:
+      - "eureka-server"
+
+  cpu-load:
+    build: ./cpu-load
+    container_name: cpu-load
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    ports:
+      - "8020:8020"
+    depends_on:
+      - "eureka-server"
+
+  db-service:
+    build: ./db-service
+    container_name: db-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    ports:
+      - "8030:8030"
+    depends_on:
+      - "eureka-server"
+
+#=======================================================
+#LOGGING - ELK
+#=======================================================
+
+  elasticsearch:
+    container_name: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.2.0
+    ports:
+      - "9200:9200"
+    environment:
+      - "discovery.type=single-node"
+      - XPACK_SECURITY_ENABLED=false
+      - XPACK_REPORTING_ENABLED=false
+      - XPACK_MONITORING_ENABLED=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - ./elasticsearch/data:/usr/share/elasticsearch/data:rw              # Persistence data
+
+  logstash:
+    container_name: logstash
+    image: docker.elastic.co/logstash/logstash:7.2.0
+    ports:
+      - "25826:25826"
+      - "5044:5044"
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro                # Pipeline configuration
+      - ./logs:/mnt
+    environment:
+      - "discovery.type=single-node"
+      - XPACK_SECURITY_ENABLED=false
+      - XPACK_REPORTING_ENABLED=false
+      - XPACK_MONITORING_ENABLED=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    restart: on-failure
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    container_name: kibana
+    image: docker.elastic.co/kibana/kibana:7.2.0
+    ports:
+      - "5601:5601"
+    restart: on-failure
+    depends_on:
+      - elasticsearch
+#
+#  filebeat:
+#    container_name: filebeat
+#    image: docker.elastic.co/beats/filebeat:7.2.0
+#    volumes:
+#      - ./filebeat/filebeat-config.yml:/usr/share/filebeat/filebeat.yml:ro # Configuration file
+##      - /var/lib/docker/containers:/var/lib/docker/containers:ro           # Docker logs
+##      - /var/run/docker.sock:/var/run/docker.sock:ro                       # Additional information about containers
+##      - ./filebeat/data:/usr/share/filebeat/data:rw                        # Persistence data
+#    user: root                                                             # Allow access to log files and docker.sock
+#    restart: on-failure
+#    depends_on:
+#      - logstash
+
+#=======================================================
+#MONITORING - GRAFANA + PROMETHEUS
+#=======================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"

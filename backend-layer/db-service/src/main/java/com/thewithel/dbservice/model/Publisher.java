@@ -1,6 +1,8 @@
 package com.thewithel.dbservice.model;
 
+import com.thewithel.dbservice.DTO.PublisherDTO;
 import lombok.Data;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.List;
@@ -15,6 +17,15 @@ public class Publisher {
     private String name;
     private String adres;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "publisher")
     private List<Book> books;
+
+    public PublisherDTO convertToDTO(){
+        PublisherDTO publisherDTO = new PublisherDTO();
+        publisherDTO.setId(this.id);
+        publisherDTO.setAdres(this.adres);
+        publisherDTO.setName(this.name);
+        return publisherDTO;
+    }
 }

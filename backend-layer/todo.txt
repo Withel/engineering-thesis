@@ -1,6 +1,16 @@
 CPU-LOAD:
 
-
 DB-SERVICE:
-    -endpoints for GET /books, /publishers, /authors
-    -endpoints for adding with to database with post and via url
+
+
+CALL-SERVICE:
+
+
+OVERALL:
+    implement prometeus, grafana
+    implement logging slf4j, logback
+    everything has to be container from now
+    implement ELK
+    docker compose
+    connect postgres LATER
+

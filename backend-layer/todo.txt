@@ -7,10 +7,7 @@ CALL-SERVICE:
 
 
 OVERALL:
-    implement prometeus, grafana
-    implement logging slf4j, logback
-    everything has to be container from now
-    implement ELK
-    docker compose
-    connect postgres LATER
-
+    /actuator/prometheus for eureka-server and api-gateway
+    discover why kibana is not available
+    set-up correct logs
+    connect postgres

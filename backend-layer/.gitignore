@@ -23,7 +23,7 @@ build/
 
 .DS_Store
 
-./elasticsearch/data
+elasticsearch/data
 
 # Ignore Gradle build output directory
 build/

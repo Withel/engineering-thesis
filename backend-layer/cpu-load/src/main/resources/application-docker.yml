@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: cpu-load-service
+  main:
+    banner-mode: off
 
 eureka:
   client:

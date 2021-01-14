@@ -5,13 +5,12 @@ import com.thewithel.dbservice.DTO.BookDTO;
 import com.thewithel.dbservice.services.BookService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller
-@RequestMapping(value = "/api", produces = "application/json;charset=UTF-8")
+@RestController
+@RequestMapping("/api")
 @Slf4j
 public class BookController {
 

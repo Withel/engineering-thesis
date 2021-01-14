@@ -1,16 +1,16 @@
-http://localhost:8080/authors/add/json
+http://localhost:8030/api/authors/add/json
 {
-    "name": "testname",
+    "name": "tolkien",
     "lastName": "testLastName"
 }
 
-http://localhost:8080/authors/add/json
+http://localhost:8030/api/publishers/add/json
 {
-    "name": "testpublisherjson",
+    "name": "microsoft",
     "address": "testpublisheradres_long_json"
 }
 
-http://localhost:8080/books/add/json
+http://localhost:8030/api/books/add/json
 {
     "title": "new book book",
     "authorLastName": "tolkien",

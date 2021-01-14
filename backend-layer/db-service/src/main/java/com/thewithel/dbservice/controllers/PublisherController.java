@@ -4,13 +4,12 @@ import com.thewithel.dbservice.DTO.AddPublisherDTO;
 import com.thewithel.dbservice.DTO.PublisherDTO;
 import com.thewithel.dbservice.services.PublisherService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller
-@RequestMapping(value = "/api", produces = "application/json;charset=UTF-8")
+@RestController
+@RequestMapping("/api")
 @Slf4j
 public class PublisherController {
 
@@ -34,7 +33,7 @@ public class PublisherController {
     }
 
     @PostMapping("/publishers/add/json")
-    String addPublishersUrl(@RequestBody AddPublisherDTO addPublisherDTO){
+    String addPublishersJson(@RequestBody AddPublisherDTO addPublisherDTO){
         log.info("ENDPOINT: /publishers/add/json in function addPublishersJson(). With params: {}", addPublisherDTO.toString());
         String message = publisherService.addPublisherJson(addPublisherDTO);
         return message;

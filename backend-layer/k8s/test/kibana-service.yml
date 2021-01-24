@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    ae-version: $MODELT-VERSION
+    environment: $ENVIRONMENT
+  creationTimestamp: "2020-09-03T12:32:42Z"
+  labels:
+    app: kibana
+    controller_version: 1.15.2
+    stack: logging
+  name: kibana
+  namespace: logging
+  resourceVersion: "26301749"
+  selfLink: /api/v1/namespaces/logging/services/kibana
+  uid: 0b6ecab9-4d9c-4fa0-8ef9-99983bd961bf
+spec:
+  clusterIP: 192.168.203.49
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: backend-port
+  selector:
+    app: kibana
+    stack: logging
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

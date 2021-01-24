@@ -1,0 +1,26 @@
+server:
+  port: 8020
+
+spring:
+  application:
+    name: cpu-load-service
+  main:
+    banner-mode: off
+
+eureka:
+  client:
+    registerWithEureka: true
+    fetchRegistry: true
+    service-url:
+      defaultZone: http://eureka-server:8661/eureka
+    instance:
+      hostname: app
+
+management:
+  endpoints:
+    jmx:
+      exposure:
+        include: "*"
+    web:
+      exposure:
+        include: "*"

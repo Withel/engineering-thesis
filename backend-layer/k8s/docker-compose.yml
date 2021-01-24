@@ -1,0 +1,50 @@
+version: "3"
+services:
+
+#=======================================================
+#SERVICES
+#=======================================================
+
+  cpu-load:
+    #    build: ./cpu-load
+    image: mklimas/cpu-load-service
+    container_name: cpu-load
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    volumes:
+      - ./logs:/mnt/logs
+    ports:
+      - "8020:8020"
+    depends_on:
+      - "eureka-server"
+
+  db-service:
+    #    build: ./db-service
+    image: mklimas/db-service
+    container_name: db-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/compose-postgres
+      - SPRING_DATASOURCE_USERNAME=compose-postgres
+      - SPRING_DATASOURCE_PASSWORD=compose-postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
+    volumes:
+      - ./logs:/mnt/logs
+    ports:
+      - "8030:8030"
+    depends_on:
+      - "eureka-server"
+      - "postgres-db"
+
+#=======================================================
+#DATABASE - POSTGRESQL
+#=======================================================
+  postgres-db:
+    image: 'postgres:13.1-alpine'
+    container_name: postgres-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=compose-postgres
+      - POSTGRES_PASSWORD=compose-postgres

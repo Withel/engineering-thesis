@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    ae-version: $MODELT-VERSION
+    environment: $ENVIRONMENT
+  creationTimestamp: "2020-09-03T12:32:37Z"
+  labels:
+    app: elasticsearch
+    controller_version: 1.15.2
+    stack: logging
+  name: elasticsearch
+  namespace: logging
+  resourceVersion: "26301727"
+  selfLink: /api/v1/namespaces/logging/services/elasticsearch
+  uid: ae504079-7303-4113-a3d7-c1fdd2c59804
+spec:
+  clusterIP: 192.168.175.28
+  ports:
+  - name: http
+    port: 443
+    protocol: TCP
+    targetPort: http
+  selector:
+    app: elasticsearch
+    stack: logging
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

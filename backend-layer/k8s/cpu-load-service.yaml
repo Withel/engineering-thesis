@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.22.0 (955b78124)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: cpu-load
+  name: cpu-load
+spec:
+  ports:
+    - name: "8020"
+      port: 8020
+      targetPort: 8020
+  selector:
+    io.kompose.service: cpu-load
+status:
+  loadBalancer: {}

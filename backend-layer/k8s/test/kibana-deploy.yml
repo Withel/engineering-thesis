@@ -1,0 +1,231 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    ae-version: $MODELT-VERSION
+    deployment.kubernetes.io/revision: "3"
+    environment: $ENVIRONMENT
+  creationTimestamp: "2020-09-03T12:32:40Z"
+  generation: 187
+  labels:
+    app: kibana
+    controller_version: 1.15.2
+    stack: logging
+  name: kibana
+  namespace: logging
+  resourceVersion: "26507308"
+  selfLink: /apis/apps/v1/namespaces/logging/deployments/kibana
+  uid: 3022efc4-ee35-4e9e-885f-a5515f0e139d
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      app: kibana
+      stack: logging
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        checksum/config: f90e96473c734f43a467c32493246591d5a343dc995324a456e6698e61bea55b
+        checksum/secret: debbb556eaa29f4bb8cad0631de97b01ec1646568ca0e3f67d5f2b1dc6fa2d2a
+      creationTimestamp: null
+      labels:
+        app: kibana
+        stack: logging
+    spec:
+      containers:
+      - env:
+        - name: ELASTICSEARCH_HOSTS
+          value: https://elasticsearch:443
+        - name: KIBANA_URL
+          value: http://localhost:5601
+        image: modeltimagerepo.azurecr.io/lms/kibana:6.7.1-7
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - /bin/bash
+              - /kibana-setup.sh
+              - --pattern-name
+              - flb-*
+              - --time-field
+              - time
+              - --verify-elasticsearch-certs
+              - --elasticsearch-client-auth
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 5601
+            scheme: HTTP
+          initialDelaySeconds: 45
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: kibana
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 5601
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: 750m
+            memory: 1000Mi
+          requests:
+            cpu: 250m
+            memory: 500Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/kibana/kibana.yml
+          name: config
+          readOnly: true
+          subPath: kibana.yml
+        - mountPath: /etc/kibana/certs/tls
+          name: kibana-tls
+          readOnly: true
+        - mountPath: /etc/kibana/certs/elasticsearch-ca
+          name: kibana-elasticsearch-ca
+          readOnly: true
+      - env:
+        - name: BACKEND
+          value: http://localhost:5601
+        - name: SAML_MAP_EmailAddress
+          value: X-WEBAUTH-USER
+        - name: SSLCIPHERSUITE
+          value: HIGH:!aNULL:!MD5:!3DES:!CAMELLIA:!AES128
+        - name: SSLPROTOCOL
+          value: -all +TLSv1.2
+        image: modeltimagerepo.azurecr.io/lms/saml-proxy:2.4.43-2
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: backend-port
+          timeoutSeconds: 1
+        name: saml-proxy
+        ports:
+        - containerPort: 80
+          name: backend-port
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: backend-port
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/apache2/conf/proxy.conf.template
+          name: config
+          readOnly: true
+          subPath: proxy.conf.template
+        - mountPath: /etc/apache2/conf/saml_sp.xml
+          name: config
+          readOnly: true
+          subPath: saml_sp.xml
+        - mountPath: /etc/apache2/conf/saml_idp.xml
+          name: config
+          readOnly: true
+          subPath: sap-idp.xml
+        - mountPath: /etc/apache2/conf/saml_sp.cert
+          name: proxy-auth
+          readOnly: true
+          subPath: tls.crt
+        - mountPath: /etc/apache2/conf/saml_sp.key
+          name: proxy-auth
+          readOnly: true
+          subPath: tls.key
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: lms-registry-secret
+      initContainers:
+      - command:
+        - sh
+        - -c
+        - until nslookup elasticsearch | awk "BEGIN {f=1} /Name:\telasticsearch/ {f=0}END{exit
+          f}"; do echo waiting for elasticsearch; sleep 2; done;
+        image: modeltimagerepo.azurecr.io/lms/busybox:1.32.0
+        imagePullPolicy: IfNotPresent
+        name: wait-for-init-elasticsearch
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: 100m
+            memory: 64Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: default
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: kibana
+        name: config
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: cron
+            path: backups
+          name: kibana
+        name: cron
+      - name: kibana-tls
+        secret:
+          defaultMode: 420
+          secretName: kibana-kibana-tls
+      - name: kibana-elasticsearch-ca
+        secret:
+          defaultMode: 420
+          secretName: kibana-kibana-elasticsearch-ca
+      - name: proxy-auth
+        secret:
+          defaultMode: 420
+          secretName: kibana-proxy-auth
+status:
+  availableReplicas: 1
+  conditions:
+  - lastTransitionTime: "2021-01-14T10:22:33Z"
+    lastUpdateTime: "2021-01-14T10:22:33Z"
+    message: ReplicaSet "kibana-68567749d9" has successfully progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  - lastTransitionTime: "2021-01-14T10:35:16Z"
+    lastUpdateTime: "2021-01-14T10:35:16Z"
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  observedGeneration: 187
+  readyReplicas: 1
+  replicas: 1
+  updatedReplicas: 1

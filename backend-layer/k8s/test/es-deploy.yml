@@ -1,0 +1,241 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    ae-version: $MODELT-VERSION
+    deployment.kubernetes.io/revision: "7"
+    environment: $ENVIRONMENT
+  creationTimestamp: "2020-09-03T12:32:36Z"
+  generation: 194
+  labels:
+    app: elasticsearch
+    controller_version: 1.15.2
+    stack: logging
+  name: elasticsearch
+  namespace: logging
+  resourceVersion: "26507296"
+  selfLink: /apis/apps/v1/namespaces/logging/deployments/elasticsearch
+  uid: 43006fad-1354-4999-b938-22c44f44c5bb
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: elasticsearch
+      stack: logging
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        checksum/config: 6eeb9a298098042d7a78622bec011d64382f02e2e08a409573e22bda09986f51
+        checksum/secret: a4559d326899add40221142c488bf1850a2709562f870606ebaa827fa5026380
+      creationTimestamp: null
+      labels:
+        app: elasticsearch
+        stack: logging
+    spec:
+      containers:
+      - env:
+        - name: ES_JAVA_OPTS
+          value: -Djava.net.preferIPv4Stack=true -Dsun.net.inetaddr.ttl=0 -XX:MaxRAMPercentage=75
+            -XX:InitialRAMPercentage=75 -Xlog:disable
+        image: modeltimagerepo.azurecr.io/lms/elasticsearch:6.7.1-4
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - /bin/bash
+              - /hooks/post-start-hook.sh
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /_cluster/health?local=true
+            port: 9200
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: elasticsearch
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /_cluster/health?local=true
+            port: 9200
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: "2"
+            memory: 3500Mi
+          requests:
+            cpu: "1"
+            memory: 2000Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/elasticsearch
+          name: data
+        - mountPath: /etc/elasticsearch/elasticsearch.yml
+          name: config
+          subPath: elasticsearch.yml
+        - mountPath: /etc/elasticsearch/log4j2.properties
+          name: config
+          subPath: log4j2.properties
+        - mountPath: /hooks
+          name: hooks
+      - env:
+        - name: SSLCIPHERSUITE
+          value: HIGH:!aNULL:!MD5:!3DES:!CAMELLIA:!AES128
+        - name: SSLPROTOCOL
+          value: -all +TLSv1.2
+        image: modeltimagerepo.azurecr.io/lms/haproxy:2.0.15-1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 90
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: 443
+          timeoutSeconds: 1
+        name: tls-proxy
+        ports:
+        - containerPort: 443
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: 443
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 500m
+            memory: 512Mi
+        securityContext:
+          runAsUser: 0
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/haproxy/haproxy.cfg
+          name: config
+          subPath: haproxy.cfg
+        - mountPath: /etc/haproxy/combined.pem
+          name: tls-certs
+          readOnly: true
+          subPath: combined.pem
+        - mountPath: /etc/haproxy/ca.crt
+          name: ca-cert
+          readOnly: true
+          subPath: ca.crt
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: lms-registry-secret
+      initContainers:
+      - command:
+        - sysctl
+        - -w
+        - vm.max_map_count=262144
+        image: modeltimagerepo.azurecr.io/lms/busybox:1.32.0
+        imagePullPolicy: IfNotPresent
+        name: set-vm-max-map-count
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: 100m
+            memory: 64Mi
+        securityContext:
+          privileged: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      - command:
+        - /bin/bash
+        - -c
+        - reserved=$(tune2fs -l $(mount | grep /var/lib/elasticsearch | awk '{ print
+          $1}') | grep 'Reserved block count' | awk '{ print $4}'); if [ 0 == $reserved
+          ]; then echo "Reserved is 0, skipping"; else echo "Not zero - changing reserved
+          from $reserved to 0"; tune2fs -m 0 $(mount | grep /var/lib/elasticsearch
+          | awk '{ print $1}'); fi
+        image: modeltimagerepo.azurecr.io/lms/debian:testing-slim-20200717
+        imagePullPolicy: IfNotPresent
+        name: remove-reserved-space
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: 100m
+            memory: 64Mi
+        securityContext:
+          privileged: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/elasticsearch
+          name: data
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 1000
+      serviceAccount: default
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 3600
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: elasticsearch
+        name: config
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: post-start-hook.sh
+            path: post-start-hook.sh
+          - key: hooks-env-variables
+            path: hooks-env-variables
+          name: elasticsearch
+        name: hooks
+      - name: tls-certs
+        secret:
+          defaultMode: 420
+          secretName: elasticsearch-proxy-tls
+      - name: ca-cert
+        secret:
+          defaultMode: 420
+          secretName: elasticsearch-proxy-ca
+      - name: data
+        persistentVolumeClaim:
+          claimName: elasticsearch
+status:
+  availableReplicas: 1
+  conditions:
+  - lastTransitionTime: "2020-09-03T12:32:36Z"
+    lastUpdateTime: "2021-01-14T10:13:42Z"
+    message: ReplicaSet "elasticsearch-6c569b98fd" has successfully progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  - lastTransitionTime: "2021-01-14T10:26:02Z"
+    lastUpdateTime: "2021-01-14T10:26:02Z"
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  observedGeneration: 194
+  readyReplicas: 1
+  replicas: 1
+  updatedReplicas: 1

@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    ae-version: $MODELT-VERSION
+    environment: $ENVIRONMENT
+  creationTimestamp: "2020-09-03T12:32:45Z"
+  labels:
+    app: log-forwarder
+    controller_version: 1.15.2
+    stack: logging
+  name: log-forwarder
+  namespace: logging
+  resourceVersion: "26301773"
+  selfLink: /api/v1/namespaces/logging/services/log-forwarder
+  uid: a4f4249f-df5a-49ac-8d10-3a7c9accbbb6
+spec:
+  clusterIP: 192.168.139.8
+  ports:
+  - name: log-forwarder
+    port: 24224
+    protocol: TCP
+    targetPort: 24224
+  selector:
+    app: log-forwarder
+    stack: logging
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

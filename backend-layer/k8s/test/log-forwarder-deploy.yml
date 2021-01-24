@@ -1,0 +1,197 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    ae-version: $MODELT-VERSION
+    deployment.kubernetes.io/revision: "3"
+    environment: $ENVIRONMENT
+  creationTimestamp: "2020-09-03T12:32:42Z"
+  generation: 185
+  labels:
+    app: log-forwarder
+    controller_version: 1.15.2
+    stack: logging
+  name: log-forwarder
+  namespace: logging
+  resourceVersion: "26507316"
+  selfLink: /apis/apps/v1/namespaces/logging/deployments/log-forwarder
+  uid: 37da5b36-5974-437c-948d-776475ceaf88
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: log-forwarder
+      stack: logging
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        checksum/config: ddd646666b57021c43dcf7917683c3731aab961ce55618b4117edd2a0356c3a9
+        checksum/secret: 35d0cfbd7dae28a9762c6bd249404ec939875099d95dc7ff5d5d0eb7686a8f23
+      creationTimestamp: null
+      labels:
+        app: log-forwarder
+        stack: logging
+    spec:
+      containers:
+      - image: modeltimagerepo.azurecr.io/lms/fluent-bit:1.2.0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          successThreshold: 1
+          tcpSocket:
+            port: 24223
+          timeoutSeconds: 1
+        name: log-forwarder
+        ports:
+        - containerPort: 2020
+          name: metrics
+          protocol: TCP
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+          requests:
+            cpu: 500m
+            memory: 128Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /fluent-bit/persist/
+          name: logpersist
+        - mountPath: /fluent-bit/etc/
+          name: config
+        - mountPath: /fluent-bit/certs/es-tls.crt
+          name: es-tls-secret
+          subPath: tls.crt
+        - mountPath: /fluent-bit/certs/es-tls.key
+          name: es-tls-secret
+          subPath: tls.key
+        - mountPath: /fluent-bit/certs/es-tls-ca.crt
+          name: es-ca-secret
+          subPath: ca.crt
+      - image: modeltimagerepo.azurecr.io/lms/stunnel:1.0.2
+        imagePullPolicy: IfNotPresent
+        name: stunnel
+        ports:
+        - containerPort: 24224
+          name: input
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/stunnel/stunnel.conf
+          name: config
+          subPath: stunnel.conf
+        - mountPath: /etc/stunnel/tls
+          name: tls-certs
+          readOnly: true
+      - command:
+        - bash
+        - /fluent-bit/etc/blob-store-entry.sh
+        image: modeltimagerepo.azurecr.io/lms/blob-store:0.3.4
+        imagePullPolicy: IfNotPresent
+        name: blob-store
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+          requests:
+            cpu: 500m
+            memory: 128Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /fluent-bit/etc/
+          name: config
+        - mountPath: /fluent-bit/persist/
+          name: logpersist
+        - mountPath: /home/rclone/.config/rclone
+          name: rclone-conf
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: lms-registry-secret
+      initContainers:
+      - command:
+        - bash
+        - /fifo-initializer.sh
+        image: modeltimagerepo.azurecr.io/lms/blob-store:0.3.4
+        imagePullPolicy: IfNotPresent
+        name: fifo-initializer
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: 100m
+            memory: 64Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /fluent-bit/persist/
+          name: logpersist
+        - mountPath: /fifo-initializer.sh
+          name: config
+          subPath: fifo-initializer.sh
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 1000
+      serviceAccount: default
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - name: es-ca-secret
+        secret:
+          defaultMode: 420
+          secretName: log-forwarder-es-ca-secret
+      - name: es-tls-secret
+        secret:
+          defaultMode: 420
+          secretName: log-forwarder-es-tls-secret
+      - name: tls-certs
+        secret:
+          defaultMode: 420
+          secretName: log-forwarder-tls-secret
+      - name: rclone-conf
+        secret:
+          defaultMode: 420
+          secretName: log-forwarder-rclone-conf
+      - configMap:
+          defaultMode: 420
+          name: log-forwarder-config
+        name: config
+      - name: logpersist
+        persistentVolumeClaim:
+          claimName: log-forwarder
+status:
+  availableReplicas: 1
+  conditions:
+  - lastTransitionTime: "2020-09-03T12:32:42Z"
+    lastUpdateTime: "2021-01-14T10:12:51Z"
+    message: ReplicaSet "log-forwarder-54b658fb97" has successfully progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  - lastTransitionTime: "2021-01-15T14:30:10Z"
+    lastUpdateTime: "2021-01-15T14:30:10Z"
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  observedGeneration: 185
+  readyReplicas: 1
+  replicas: 1
+  updatedReplicas: 1
